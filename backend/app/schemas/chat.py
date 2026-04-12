@@ -1,12 +1,13 @@
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., min_length=1, max_length=10_000)
     provider: str = "openrouter"
-    model: str = "meta-llama/llama-3-8b-instruct:free"
+    model: str = "openrouter/free"
     conversation_id: Optional[str] = None
 
 
@@ -18,17 +19,39 @@ class ChatResponse(BaseModel):
     response_time_ms: float
 
 
-class ProviderConfig(BaseModel):
-    name: str
-    base_url: str
-    api_key_env: str
-    models: list[str]
-    is_local: bool = False
+class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-
-class ModelInfo(BaseModel):
+    id: str
+    role: str
+    content: str
     provider: str
-    model_id: str
+    model: str
+    created_at: datetime
+
+
+class ConversationSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ConversationDetail(ConversationSummary):
+    messages: list[MessageOut]
+
+
+class ProviderInfo(BaseModel):
+    name: str
     display_name: str
     is_local: bool
-    description: str
+    available: bool
+    models: list[str]
+
+
+class ModelsResponse(BaseModel):
+    active_provider: str
+    active_model: str
+    providers: list[ProviderInfo]

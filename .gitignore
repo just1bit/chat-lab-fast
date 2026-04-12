@@ -23,6 +23,8 @@ build/
 .env.local
 .env.*.local
 !.env.example
+providers.json
+!providers.json.example
 
 # Node / Vite
 node_modules/
@@ -46,6 +48,11 @@ yarn-error.log*
 .cache/
 hf_cache/
 models/
+
+# SQLite (default dev database)
+*.db
+*.sqlite
+*.sqlite3
 
 .claude
 PRD_FastAPI_AI_Tutorial.md
