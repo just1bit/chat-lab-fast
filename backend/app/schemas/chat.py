@@ -35,6 +35,8 @@ class ConversationSummary(BaseModel):
 
     id: str
     title: str
+    provider: str
+    model: str
     created_at: datetime
     updated_at: datetime
 

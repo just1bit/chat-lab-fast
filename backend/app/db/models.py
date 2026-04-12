@@ -20,6 +20,8 @@ class Conversation(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_new_id)
     title: Mapped[str] = mapped_column(String(255), default="New chat")
+    provider: Mapped[str] = mapped_column(String(64), default="")
+    model: Mapped[str] = mapped_column(String(128), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utc_now, onupdate=_utc_now

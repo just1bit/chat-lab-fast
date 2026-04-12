@@ -1,5 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
+from app.services.llm_service import StreamChunk
+
 
 @patch(
     "app.routers.chat.generate_response",
@@ -60,7 +62,7 @@ def test_chat_rejects_empty_message(client):
 def test_chat_stream_emits_meta_data_and_done_events(mock_stream, client):
     async def fake_stream(*args, **kwargs):
         for word in ["Hello ", "world!"]:
-            yield word
+            yield StreamChunk(text=word, is_thinking=False)
 
     mock_stream.return_value = fake_stream()
 

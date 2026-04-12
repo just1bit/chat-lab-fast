@@ -10,6 +10,8 @@ export interface Message {
 export interface ConversationSummary {
   id: string
   title: string
+  provider: string
+  model: string
   created_at: string
   updated_at: string
 }

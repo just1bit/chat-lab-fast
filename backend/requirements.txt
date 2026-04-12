@@ -10,5 +10,4 @@ httpx>=0.27.0
 pytest>=8.3.0
 
 # Optional — install only if you need them:
-#   psycopg2-binary>=2.9.9          # PostgreSQL driver (SQLite is the default)
 #   transformers>=4.44.0 torch      # Phase 2: local HuggingFace models

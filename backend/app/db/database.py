@@ -10,14 +10,10 @@ class Base(DeclarativeBase):
     pass
 
 
-def _engine_kwargs(url: str) -> dict:
-    # SQLite needs check_same_thread=False because FastAPI may share connections across threads.
-    if url.startswith("sqlite"):
-        return {"connect_args": {"check_same_thread": False}}
-    return {}
-
-
-engine = create_engine(settings.database_url, **_engine_kwargs(settings.database_url))
+engine = create_engine(
+    settings.database_url,
+    connect_args={"check_same_thread": False},
+)
 SessionLocal = sessionmaker(
     bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
 )

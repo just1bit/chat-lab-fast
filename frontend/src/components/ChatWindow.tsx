@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 
 import MessageBubble from './MessageBubble'
@@ -8,46 +8,84 @@ interface Props {
   messages: Message[]
   loading: boolean
   error: string | null
+  streamStatus: string | null
   onSend: (text: string) => void
+  disabled?: boolean
 }
 
-export default function ChatWindow({ messages, loading, error, onSend }: Props) {
+export default function ChatWindow({ messages, loading, error, streamStatus, onSend, disabled }: Props) {
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const userScrolledUp = useRef(false)
 
+  // Detect if user has scrolled away from bottom
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    userScrolledUp.current = distFromBottom > 80
+  }, [])
+
+  // Auto-scroll only when user is near bottom
   useEffect(() => {
+    if (userScrolledUp.current) return
     const el = scrollRef.current
     if (el) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     }
   }, [messages, loading])
 
+  // Reset scroll lock when a new message is sent (loading starts fresh)
+  const prevLoadingRef = useRef(false)
+  useEffect(() => {
+    // When loading transitions from false → true, user just sent a message
+    if (loading && !prevLoadingRef.current) {
+      userScrolledUp.current = false
+      const el = scrollRef.current
+      if (el) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+      }
+    }
+    prevLoadingRef.current = loading
+  }, [loading])
+
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const trimmed = input.trim()
-    if (!trimmed || loading) return
+    if (!trimmed || loading || disabled) return
     onSend(trimmed)
     setInput('')
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
-        {messages.length === 0 && !loading && (
-          <div className="mx-auto max-w-lg rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
-            Start a conversation with the chatbot. Pick a provider from the
-            top-right. Configure providers and API keys in{' '}
-            <code className="rounded bg-slate-800 px-1">backend/providers.json</code>.
-          </div>
-        )}
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
-        ))}
-        {error && (
-          <div className="rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-xs text-red-300">
-            Error: {error}
-          </div>
-        )}
+    <section className="flex min-h-0 flex-1 flex-col">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-4 py-4"
+      >
+        <div className="mx-auto max-w-4xl space-y-4">
+          {messages.length === 0 && !loading && (
+            <div className="mx-auto max-w-lg rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
+              Start a conversation with the chatbot. Pick a provider from the
+              top-right. Configure providers and API keys in{' '}
+              <code className="rounded bg-slate-800 px-1">backend/providers.json</code>.
+            </div>
+          )}
+          {messages.map((m, i) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+              loading={loading && i === messages.length - 1}
+              streamStatus={loading && i === messages.length - 1 ? streamStatus : null}
+            />
+          ))}
+          {error && (
+            <div className="rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-xs text-red-300">
+              Error: {error}
+            </div>
+          )}
+        </div>
       </div>
 
       <form onSubmit={submit} className="border-t border-slate-800 p-4">
@@ -60,7 +98,7 @@ export default function ChatWindow({ messages, loading, error, onSend }: Props) 
           />
           <button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || disabled}
             className="rounded-lg bg-indigo-600 px-5 py-2 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Sending…' : 'Send'}

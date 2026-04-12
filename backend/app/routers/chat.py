@@ -16,7 +16,11 @@ router = APIRouter()
 
 
 def _load_or_create_conversation(
-    db: Session, conversation_id: Optional[str], first_message: str
+    db: Session,
+    conversation_id: Optional[str],
+    first_message: str,
+    provider: str = "",
+    model: str = "",
 ) -> orm.Conversation:
     if conversation_id:
         conv = db.get(orm.Conversation, conversation_id)
@@ -27,7 +31,7 @@ def _load_or_create_conversation(
             )
         return conv
     title = (first_message.strip().splitlines()[0] or "New chat")[:64]
-    conv = orm.Conversation(title=title)
+    conv = orm.Conversation(title=title, provider=provider, model=model)
     db.add(conv)
     db.flush()
     return conv
@@ -45,7 +49,10 @@ def _build_history(
 async def chat(
     request: ChatRequest, db: Session = Depends(get_db)
 ) -> ChatResponse:
-    conv = _load_or_create_conversation(db, request.conversation_id, request.message)
+    conv = _load_or_create_conversation(
+        db, request.conversation_id, request.message,
+        provider=request.provider, model=request.model,
+    )
     prior = [(m.role, m.content) for m in conv.messages]
     history = _build_history(prior, request.message)
 
@@ -92,7 +99,9 @@ async def chat_stream(
     # Short-lived setup session: create/fetch conversation, persist user turn,
     # materialize prior history before the session closes.
     with db_module.SessionLocal() as db:
-        conv = _load_or_create_conversation(db, conversation_id, message)
+        conv = _load_or_create_conversation(
+            db, conversation_id, message, provider=provider, model=model,
+        )
         conv_id = conv.id
         prior = [(m.role, m.content) for m in conv.messages]
         db.add(
@@ -111,11 +120,19 @@ async def chat_stream(
     async def event_source():
         yield f"event: meta\ndata: {json.dumps({'conversation_id': conv_id})}\n\n"
         collected: list[str] = []
+        sent_thinking = False
         try:
             async for chunk in stream_response(provider, model, history):
-                collected.append(chunk)
+                if chunk.is_thinking:
+                    # Only emit the "Thinking..." status once
+                    if not sent_thinking:
+                        yield f"event: status\ndata: {json.dumps({'text': 'Thinking...'})}\n\n"
+                        sent_thinking = True
+                    continue
+
+                collected.append(chunk.text)
                 # SSE data lines can't contain literal newlines; escape them.
-                payload = chunk.replace("\r", "").replace("\n", "\\n")
+                payload = chunk.text.replace("\r", "").replace("\n", "\\n")
                 yield f"data: {payload}\n\n"
         except Exception as exc:
             yield f"event: error\ndata: {json.dumps({'detail': str(exc)})}\n\n"

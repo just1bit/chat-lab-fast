@@ -40,7 +40,7 @@ cs732-tech-tutorial-just1bit/
 | Backend | Python 3.11+ + FastAPI + Uvicorn |
 | AI orchestration | LangChain (`ChatOpenAI` — any OpenAI-compatible endpoint) |
 | Local AI (advanced) | HuggingFace Transformers, feature-flagged |
-| Database | SQLAlchemy (SQLite by default, PostgreSQL supported) |
+| Database | SQLAlchemy + SQLite |
 | Tests | pytest + FastAPI TestClient |
 
 ---
@@ -51,7 +51,7 @@ cs732-tech-tutorial-just1bit/
 
 - Python **3.11+**
 - Node.js **18+** / npm
-- **No database install required** — the default `DATABASE_URL` points at a local SQLite file. PostgreSQL is supported via `DATABASE_URL` if you prefer.
+- **No database install required** — the project uses a local SQLite file (`chatbot.db`), created automatically on first run.
 - An **OpenRouter API key** (free tier available at <https://openrouter.ai>) — set it in `providers.json`.
 
 ### 1. Clone
@@ -141,7 +141,7 @@ Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DATABASE_URL` | `sqlite:///./chatbot.db` | SQLAlchemy DSN. Swap for `postgresql+psycopg2://…` to use Postgres |
+| `DATABASE_URL` | `sqlite:///./chatbot.db` | SQLite database file path |
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | CORS origin for the Vite dev server |
 | `ENABLE_LOCAL_MODELS` | `false` | Feature flag for Phase 2 HuggingFace models |
 
@@ -170,7 +170,7 @@ All endpoints live under `/api` (see Swagger UI at <http://localhost:8000/docs>)
 This project is built in three phases:
 
 - **Phase 1 — FastAPI fundamentals + external LLM APIs** ✅
-  Pydantic validation, auto-generated Swagger/ReDoc, CORS, LangChain `ChatOpenAI` against any OpenAI-compatible endpoint, SSE streaming, SQLite/Postgres-backed conversation history, and the React chat UI.
+  Pydantic validation, auto-generated Swagger/ReDoc, CORS, LangChain `ChatOpenAI` against any OpenAI-compatible endpoint, SSE streaming, SQLite-backed conversation history, and the React chat UI.
 
 - **Phase 2 — Local AI models** *(advanced, optional, feature-flagged)*
   HuggingFace Transformers loaded via FastAPI lifespan events. Demonstrates in-process model inference — the key differentiator vs. Node.js. Opt in by installing `transformers` + `torch` and setting `ENABLE_LOCAL_MODELS=true`.
