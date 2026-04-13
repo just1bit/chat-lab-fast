@@ -1,6 +1,6 @@
 # CS732 Tech Tutorial — Python FastAPI + AI
 
-A hands-on tutorial that teaches **Python / FastAPI** by building a full-stack **AI chatbot** (React frontend + FastAPI backend), with an objective side-by-side comparison to **Node.js / Express** throughout. Local AI model inference via HuggingFace is covered as an advanced chapter to highlight where the Python ecosystem has unique capabilities.
+A hands-on tutorial that teaches **Python / FastAPI** by building a full-stack **AI chatbot** (React frontend + FastAPI backend), with an objective side-by-side comparison to **Node.js / Express** throughout.
 
 > **Thesis:** FastAPI and Express are two mature backend frameworks with different design philosophies and strengths. This tutorial teaches FastAPI by building, and contextualizes every concept against the Express equivalent so viewers can make informed decisions about which tool fits their project.
 
@@ -43,7 +43,6 @@ cs732-tech-tutorial-just1bit/
 | Frontend | React (Vite) + TypeScript + Tailwind CSS |
 | Backend | Python 3.11+ + FastAPI + Uvicorn |
 | AI orchestration | LangChain (`ChatOpenAI` — any OpenAI-compatible endpoint) |
-| Local AI (advanced) | HuggingFace Transformers, feature-flagged |
 | Database | SQLAlchemy + SQLite |
 | Tests | pytest + FastAPI TestClient |
 
@@ -147,7 +146,6 @@ Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`:
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./chatbot.db` | SQLite database file path |
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | CORS origin for the Vite dev server |
-| `ENABLE_LOCAL_MODELS` | `false` | Feature flag for Phase 2 HuggingFace models |
 
 **Never commit `providers.json` or `.env`.** API keys are submitted separately on Canvas per the assignment brief.
 
@@ -171,16 +169,11 @@ All endpoints live under `/api` (see Swagger UI at <http://localhost:8000/docs>)
 
 ## Roadmap
 
-This project is built in three phases:
-
 - **Phase 1 — FastAPI fundamentals + external LLM APIs** ✅
   Pydantic validation, auto-generated Swagger/ReDoc, CORS, LangChain `ChatOpenAI` against any OpenAI-compatible endpoint, SSE streaming, SQLite-backed conversation history, and the React chat UI.
 
-- **Phase 2 — Local AI models** *(advanced, optional, feature-flagged)*
-  HuggingFace Transformers loaded via FastAPI lifespan events. Demonstrates in-process model inference — the key differentiator vs. Node.js. Opt in by installing `transformers` + `torch` and setting `ENABLE_LOCAL_MODELS=true`.
-
-- **Phase 3 — Comparison & polish** ✅
-  Side-by-side FastAPI vs. Express comparison in this README, pytest suite (7 tests), and setup polish for peer review.
+- **Phase 2 — Comparison & polish** ✅
+  FastAPI vs. Express comparison table in this README, pytest suite (7 tests), and setup polish for peer review.
 
 ---
 
@@ -195,8 +188,6 @@ This project is built in three phases:
 | Local model inference | Load and run in-process | Not practically feasible |
 | Full-stack language | Python backend, JS/TS frontend | Same language on both sides |
 | Dependency injection | Built-in `Depends()` | Manual or third-party |
-
-More depth, worked code comparisons, and a "when to use which" summary land in the README alongside the Phase 3 polish.
 
 ---
 
