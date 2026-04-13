@@ -30,7 +30,8 @@ def _load_or_create_conversation(
                 detail="Conversation not found",
             )
         return conv
-    title = (first_message.strip().splitlines()[0] or "New chat")[:64]
+    lines = first_message.strip().splitlines()
+    title = (lines[0] if lines else "New chat")[:64]
     conv = orm.Conversation(title=title, provider=provider, model=model)
     db.add(conv)
     db.flush()

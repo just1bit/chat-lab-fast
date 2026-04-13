@@ -14,6 +14,7 @@ function App() {
         conversations={chat.conversations}
         activeId={chat.activeConversationId}
         collapsed={sidebarCollapsed}
+        streamingIds={chat.streamingIds}
         onOpen={chat.openConversation}
         onNew={chat.newChat}
         onDelete={chat.removeConversation}

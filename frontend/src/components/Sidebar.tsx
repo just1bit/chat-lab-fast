@@ -4,6 +4,7 @@ interface Props {
   conversations: ConversationSummary[]
   activeId: string | null
   collapsed: boolean
+  streamingIds: Set<string>
   onOpen: (id: string) => void
   onNew: () => void
   onDelete: (id: string) => void
@@ -14,6 +15,7 @@ export default function Sidebar({
   conversations,
   activeId,
   collapsed,
+  streamingIds,
   onOpen,
   onNew,
   onDelete,
@@ -73,10 +75,13 @@ export default function Sidebar({
                 >
                   <button
                     type="button"
-                    className="flex-1 truncate text-left"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
                     onClick={() => onOpen(c.id)}
                   >
-                    {c.title}
+                    {streamingIds.has(c.id) && (
+                      <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-indigo-400" />
+                    )}
+                    <span className="truncate">{c.title}</span>
                   </button>
                   <button
                     type="button"

@@ -6,6 +6,10 @@ A hands-on tutorial that teaches **Python / FastAPI** by building a full-stack *
 
 ---
 
+## Architecture
+
+Monorepo full-stack layered architecture: React SPA frontend communicates with a FastAPI backend via REST / SSE. The backend follows the **Service-Repository** pattern (`routers → services → db`).
+
 ## Repository Layout
 
 ```
