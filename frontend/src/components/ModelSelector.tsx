@@ -59,7 +59,7 @@ export default function ModelSelector({
         {models.providers.map((p) => (
           <option key={p.name} value={p.name} disabled={!p.available}>
             {p.display_name}
-            {!p.available ? ' (key missing)' : ''}
+            {!p.available ? (p.is_local ? ' (not loaded)' : ' (key missing)') : ''}
           </option>
         ))}
       </select>

@@ -20,7 +20,7 @@ cs732-tech-tutorial-just1bit/
 │   │   ├── config.py         # Pydantic BaseSettings + .env loading
 │   │   ├── providers.py      # Loads provider registry from providers.json
 │   │   ├── routers/          # chat / models / conversations endpoints
-│   │   ├── services/         # LangChain orchestration
+│   │   ├── services/         # LangChain orchestration + local model inference
 │   │   ├── schemas/          # Pydantic request/response models
 │   │   └── db/               # SQLAlchemy engine & ORM models
 │   ├── tests/                # pytest + FastAPI TestClient
@@ -43,6 +43,7 @@ cs732-tech-tutorial-just1bit/
 | Frontend | React (Vite) + TypeScript + Tailwind CSS |
 | Backend | Python 3.11+ + FastAPI + Uvicorn |
 | AI orchestration | LangChain (`ChatOpenAI` — any OpenAI-compatible endpoint) |
+| Local AI (optional) | HuggingFace Transformers (in-process inference) |
 | Database | SQLAlchemy + SQLite |
 | Tests | pytest + FastAPI TestClient |
 
@@ -146,6 +147,7 @@ Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`:
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./chatbot.db` | SQLite database file path |
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | CORS origin for the Vite dev server |
+| `ENABLE_LOCAL_MODELS` | `false` | Set to `true` to enable local HuggingFace model inference |
 
 **Never commit `providers.json` or `.env`.** API keys are submitted separately on Canvas per the assignment brief.
 
@@ -167,13 +169,58 @@ All endpoints live under `/api` (see Swagger UI at <http://localhost:8000/docs>)
 
 ---
 
+## Local AI Models (Advanced, Optional)
+
+This is the key differentiator of the tutorial — **Python can load ML model weights directly into the FastAPI process and run inference in-process, something Node.js/Express simply cannot do.**
+
+The default local model is [SmolLM2-135M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct) (~270 MB download), a lightweight instruction-tuned model that can hold a conversation. Local models appear alongside cloud providers in the same UI dropdown — select one and chat.
+
+### Setup
+
+```bash
+# 1. Install the optional dependencies
+pip install transformers torch
+
+# 2. Enable in .env
+ENABLE_LOCAL_MODELS=true
+
+# 3. Start the backend — models are downloaded and loaded automatically on startup
+uvicorn app.main:app --reload
+```
+
+On first startup, the model weights are downloaded from HuggingFace Hub to `~/.cache/huggingface/hub/` and loaded into memory. Subsequent startups load from the local cache.
+
+### Adding / Swapping Models
+
+Local models are configured in `providers.json` alongside cloud providers — just add HuggingFace model IDs to the `models` list:
+
+```jsonc
+{
+  "local": {
+    "display_name": "Local (HuggingFace)",
+    "base_url": "",
+    "api_key": "",
+    "models": ["HuggingFaceTB/SmolLM2-135M-Instruct"],
+    "is_local": true
+  }
+}
+```
+
+All listed models are downloaded and loaded into memory at startup, so switching between them in the UI is instant. The system automatically detects whether a model is instruction-tuned (uses `apply_chat_template`) or a base dialogue model, so any compatible HuggingFace model should work.
+
+### Without Local Models
+
+The app works fully without local models — just leave `ENABLE_LOCAL_MODELS=false` (the default). The local provider will appear greyed out in the UI dropdown.
+
+---
+
 ## Roadmap
 
 - **Phase 1 — FastAPI fundamentals + external LLM APIs** ✅
   Pydantic validation, auto-generated Swagger/ReDoc, CORS, LangChain `ChatOpenAI` against any OpenAI-compatible endpoint, SSE streaming, SQLite-backed conversation history, and the React chat UI.
 
-- **Phase 2 — Comparison & polish** ✅
-  FastAPI vs. Express comparison table in this README, pytest suite (7 tests), and setup polish for peer review.
+- **Phase 2 — Local AI models** ✅
+  HuggingFace Transformers integration with in-process inference, model loading on startup via FastAPI lifespan, configurable local models in `providers.json`, feature-flagged via `ENABLE_LOCAL_MODELS`.
 
 ---
 

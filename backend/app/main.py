@@ -39,7 +39,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(_app: FastAPI):
     logger.info("Starting up — initializing database")
     init_db()
-    local_service.try_load()
+
+    # Load all local models configured in providers.json at startup
+    from app.providers import PROVIDERS
+    local_model_ids = [
+        m for cfg in PROVIDERS.values() if cfg.is_local for m in cfg.models
+    ]
+    local_service.load_models_on_startup(local_model_ids)
     logger.info("Ready")
     yield
     logger.info("Shutting down")

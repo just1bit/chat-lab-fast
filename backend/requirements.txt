@@ -9,5 +9,6 @@ sqlalchemy>=2.0.35
 httpx>=0.27.0
 pytest>=8.3.0
 
-# Optional — install only if you need them:
-#   transformers>=4.44.0 torch      # Phase 2: local HuggingFace models
+# Optional — install for local HuggingFace model inference (Phase 2):
+#   pip install transformers torch
+# Then set ENABLE_LOCAL_MODELS=true in .env

@@ -6,6 +6,7 @@ import httpx
 from fastapi import HTTPException, status
 
 from app.providers import PROVIDERS, ProviderConfig
+from app.services import local_service
 
 
 @dataclass
@@ -23,7 +24,7 @@ class StreamChunk:
 
 def provider_available(cfg: ProviderConfig) -> bool:
     if cfg.is_local:
-        return True
+        return local_service.is_ready()
     return bool(cfg.api_key)
 
 
@@ -64,6 +65,17 @@ async def generate_response(
     provider: str, model: str, messages: list[ChatMessage]
 ) -> str:
     cfg = resolve_provider(provider)
+
+    # Route local providers to the in-process HuggingFace pipeline
+    if cfg.is_local:
+        if not local_service.is_ready():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Local model is not available. Set ENABLE_LOCAL_MODELS=true and install transformers + torch.",
+            )
+        user_text = messages[-1].content if messages else ""
+        return local_service.generate_response(model, user_text)
+
     try:
         llm = _build_llm(cfg, model)
         lc_messages = _to_lc_messages(messages)
@@ -145,6 +157,19 @@ async def stream_response(
     provider: str, model: str, messages: list[ChatMessage]
 ) -> AsyncIterator[StreamChunk]:
     cfg = resolve_provider(provider)
+
+    # Local models don't stream — emit the full response as a single chunk.
+    if cfg.is_local:
+        if not local_service.is_ready():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Local model is not available. Set ENABLE_LOCAL_MODELS=true and install transformers + torch.",
+            )
+        user_text = messages[-1].content if messages else ""
+        reply = local_service.generate_response(model, user_text)
+        yield StreamChunk(text=reply, is_thinking=False)
+        return
+
     if not cfg.api_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
