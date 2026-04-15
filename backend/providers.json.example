@@ -16,7 +16,7 @@
       "models": ["gpt-4o-mini", "gpt-4o"]
     },
     "local": {
-      "display_name": "Local (HuggingFace)",
+      "display_name": "Local Model",
       "base_url": "",
       "api_key": "",
       "models": ["HuggingFaceTB/SmolLM2-135M-Instruct"],

@@ -54,7 +54,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="CS732 FastAPI + AI Tutorial",
     description=(
-        "A teaching backend for a React + FastAPI AI chatbot. "
+        "A React + FastAPI AI chatbot. "
         "Configure providers in providers.json."
     ),
     version="0.1.0",

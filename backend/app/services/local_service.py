@@ -1,17 +1,3 @@
-# HuggingFace local-model inference (Phase 2 — advanced, optional).
-#
-# Demonstrates Python's unique ability to load ML model weights directly
-# into the FastAPI process and run inference in-process — something
-# Node.js/Express simply cannot do.
-#
-# Enable with ENABLE_LOCAL_MODELS=true in .env AND
-#   pip install transformers torch
-#
-# Available models are configured in providers.json under the local
-# provider's "models" list. Each entry is a HuggingFace model ID
-# (e.g. "HuggingFaceTB/SmolLM2-135M-Instruct"). ALL listed models are downloaded
-# and loaded into memory at startup, so switching between them is instant.
-
 import logging
 from typing import Optional
 
@@ -19,7 +5,6 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# All loaded models keyed by HuggingFace model ID.
 _models: dict[str, object] = {}
 _tokenizers: dict[str, object] = {}
 _deps_available: Optional[bool] = None  # cached import check

@@ -1,8 +1,8 @@
 # CS732 Tech Tutorial — Python FastAPI + AI
 
-A hands-on tutorial that teaches **Python / FastAPI** by building a full-stack **AI chatbot** (React frontend + FastAPI backend), with an objective side-by-side comparison to **Node.js / Express** throughout.
+A hands-on tutorial on **Python FastAPI** — the Python alternative to Express, and an increasingly popular backend framework in AI projects.
 
-> **Thesis:** FastAPI and Express are two mature backend frameworks with different design philosophies and strengths. This tutorial teaches FastAPI by building, and contextualizes every concept against the Express equivalent so viewers can make informed decisions about which tool fits their project.
+It is demonstrated by building a full-stack **AI chatbot**: React on the frontend, FastAPI + SQLAlchemy + LangChain on the backend.
 
 ---
 
@@ -224,12 +224,11 @@ The app works fully without local models — just leave `ENABLE_LOCAL_MODELS=fal
 
 ---
 
-## FastAPI vs. Express — At a Glance
+## FastAPI vs. Express
 
 | Aspect | FastAPI (Python) | Express (Node.js) |
 |---|---|---|
-| Request validation | Pydantic, built-in, auto 422 errors | Requires Zod / Joi / express-validator |
-| API docs | Swagger UI + ReDoc auto-generated at `/docs` | Manual `swagger-jsdoc` + `swagger-ui-express` |
+| Validation & docs | Pydantic + auto Swagger/ReDoc, built in | Assemble yourself or via external tools |
 | Async model | `asyncio` + ASGI, thread/process pools for CPU | Single-threaded event loop |
 | AI / ML ecosystem | PyTorch, HuggingFace, LangChain, scikit-learn | Limited to HTTP calls to external APIs |
 | Local model inference | Load and run in-process | Not practically feasible |
