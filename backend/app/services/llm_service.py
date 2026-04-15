@@ -4,6 +4,7 @@ from typing import AsyncIterator, Iterable
 
 import httpx
 from fastapi import HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 
 from app.providers import PROVIDERS, ProviderConfig
 from app.services import local_service
@@ -74,7 +75,7 @@ async def generate_response(
                 detail="Local model is not available. Set ENABLE_LOCAL_MODELS=true and install transformers + torch.",
             )
         user_text = messages[-1].content if messages else ""
-        return local_service.generate_response(model, user_text)
+        return await run_in_threadpool(local_service.generate_response, model, user_text)
 
     try:
         llm = _build_llm(cfg, model)
@@ -166,7 +167,7 @@ async def stream_response(
                 detail="Local model is not available. Set ENABLE_LOCAL_MODELS=true and install transformers + torch.",
             )
         user_text = messages[-1].content if messages else ""
-        reply = local_service.generate_response(model, user_text)
+        reply = await run_in_threadpool(local_service.generate_response, model, user_text)
         yield StreamChunk(text=reply, is_thinking=False)
         return
 
