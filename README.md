@@ -54,9 +54,9 @@ cs732-tech-tutorial-just1bit/
 ### Prerequisites
 
 - Python **3.11+**
-- Node.js **18+** / npm
+- Node.js **20.19+** / npm (required by Vite 8)
 - **No database install required** — the project uses a local SQLite file (`chatbot.db`), created automatically on first run.
-- An **OpenRouter API key** (free tier available at <https://openrouter.ai>) — set it in `providers.json`.
+- An **OpenRouter API key** — sign up at <https://openrouter.ai>, then create a key at <https://openrouter.ai/keys>. If you are reviewing this assignment, grab the `providers.json` I uploaded to Canvas instead and skip creating your own key.
 
 ### 1. Clone
 
@@ -73,7 +73,8 @@ python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-cp providers.json.example providers.json   # then fill in your API key
+# Peer reviewers: drop the providers.json from Canvas into this folder and skip the next line.
+cp providers.json.example providers.json   # then paste your OpenRouter key into providers.openrouter.api_key
 uvicorn app.main:app --reload
 ```
 
@@ -89,6 +90,8 @@ pytest
 ```
 
 ### 3. Frontend
+
+Open a **second terminal** (keep the backend running in the first):
 
 ```bash
 cd frontend
