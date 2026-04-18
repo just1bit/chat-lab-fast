@@ -55,4 +55,3 @@ models/
 *.sqlite3
 
 .claude
-PRD_FastAPI_AI_Tutorial.md
