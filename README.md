@@ -8,7 +8,7 @@ It is demonstrated by building a full-stack **AI chatbot**: React on the fronten
 
 ## Architecture
 
-Monorepo full-stack layered architecture: React SPA frontend communicates with a FastAPI backend via REST / SSE. The backend follows the **Service-Repository** pattern (`routers → services → db`).
+Monorepo full-stack layered architecture: a React SPA talks to a FastAPI backend over REST + SSE. The backend splits `routers` (HTTP endpoints) from `services` (LLM orchestration and local inference); persistence is SQLAlchemy models accessed through a per-request session dependency.
 
 ## Repository Layout
 
@@ -107,7 +107,7 @@ Opens at <http://localhost:5173>.
 
 ### Provider configuration — `backend/providers.json`
 
-All provider definitions, API keys, and the active provider/model are managed in a single file: **`backend/providers.json`**. Copy `providers.json.example` to get started.
+All provider definitions, API keys, and the active provider/model are managed in a single file: **`backend/providers.json`**.
 
 ```jsonc
 {
@@ -144,7 +144,13 @@ Then set `"active_provider": "my-provider"` and `"active_model": "model-a"` to u
 
 ### Environment — `backend/.env`
 
-Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`:
+Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`. Create it by copying the template:
+
+```bash
+cp .env.example .env
+```
+
+The defaults work out of the box — no edits are required unless you want to turn on local models (see below).
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -152,7 +158,7 @@ Non-provider settings are loaded from `.env` via Pydantic `BaseSettings`:
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | CORS origin for the Vite dev server |
 | `ENABLE_LOCAL_MODELS` | `false` | Set to `true` to enable local HuggingFace model inference |
 
-**Never commit `providers.json` or `.env`.** API keys are submitted separately on Canvas per the assignment brief.
+`.env` holds no secrets in this project, so it doesn't need to be shared via Canvas — `providers.json` is the only file with real API keys.
 
 ---
 
@@ -165,7 +171,7 @@ All endpoints live under `/api` (see Swagger UI at <http://localhost:8000/docs>)
 | `GET` | `/api/health` | Liveness probe |
 | `GET` | `/api/models` | List providers + models, reports which have API keys configured |
 | `POST` | `/api/chat` | Non-streaming chat; persists the turn and returns the assistant reply |
-| `GET` | `/api/chat/stream` | Server-Sent Events stream; emits `meta`, `data`, and `done` frames |
+| `GET` | `/api/chat/stream` | Server-Sent Events stream; emits `meta`, `data`, `status`, `done`, and `error` events |
 | `GET` | `/api/conversations` | List all saved conversations |
 | `GET` | `/api/conversations/{id}` | Conversation detail with full message history |
 | `DELETE` | `/api/conversations/{id}` | Delete a conversation and its messages |
@@ -174,22 +180,29 @@ All endpoints live under `/api` (see Swagger UI at <http://localhost:8000/docs>)
 
 ## Local AI Models (Advanced, Optional)
 
-This is the key differentiator of the tutorial — **Python can load ML model weights directly into the FastAPI process and run inference in-process, something Node.js/Express simply cannot do.**
+This is the key differentiator of the tutorial — **Python can load ML model weights directly into the FastAPI process and run inference in-process, something Node.js/Express can't practically do at comparable scale or with comparable tooling.**
 
 The default local model is [SmolLM2-135M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct) (~270 MB download), a lightweight instruction-tuned model that can hold a conversation. Local models appear alongside cloud providers in the same UI dropdown — select one and chat.
 
 ### Setup
 
-```bash
-# 1. Install the optional dependencies
-pip install transformers torch
+1. Install the optional dependencies:
 
-# 2. Enable in .env
-ENABLE_LOCAL_MODELS=true
+   ```bash
+   pip install transformers torch
+   ```
 
-# 3. Start the backend — models are downloaded and loaded automatically on startup
-uvicorn app.main:app --reload
-```
+2. Flip the feature flag in `backend/.env`:
+
+   ```ini
+   ENABLE_LOCAL_MODELS=true
+   ```
+
+3. Start the backend — models are downloaded and loaded automatically on startup:
+
+   ```bash
+   uvicorn app.main:app --reload
+   ```
 
 On first startup, the model weights are downloaded from HuggingFace Hub to `~/.cache/huggingface/hub/` and loaded into memory. Subsequent startups load from the local cache.
 
@@ -200,7 +213,7 @@ Local models are configured in `providers.json` alongside cloud providers — ju
 ```jsonc
 {
   "local": {
-    "display_name": "Local (HuggingFace)",
+    "display_name": "Local Model",
     "base_url": "",
     "api_key": "",
     "models": ["HuggingFaceTB/SmolLM2-135M-Instruct"],
@@ -213,17 +226,7 @@ All listed models are downloaded and loaded into memory at startup, so switching
 
 ### Without Local Models
 
-The app works fully without local models — just leave `ENABLE_LOCAL_MODELS=false` (the default). The local provider will appear greyed out in the UI dropdown.
-
----
-
-## Roadmap
-
-- **Phase 1 — FastAPI fundamentals + external LLM APIs** ✅
-  Pydantic validation, auto-generated Swagger/ReDoc, CORS, LangChain `ChatOpenAI` against any OpenAI-compatible endpoint, SSE streaming, SQLite-backed conversation history, and the React chat UI.
-
-- **Phase 2 — Local AI models** ✅
-  HuggingFace Transformers integration with in-process inference, model loading on startup via FastAPI lifespan, configurable local models in `providers.json`, feature-flagged via `ENABLE_LOCAL_MODELS`.
+The app works fully without local models — just leave `ENABLE_LOCAL_MODELS=false` (the default). The local provider appears in the dropdown as `Local Model (not loaded)` and is un-selectable. (Cloud providers missing an API key show up as `DisplayName (key missing)` for the same reason.)
 
 ---
 
